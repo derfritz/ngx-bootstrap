@@ -1,6 +1,6 @@
 {
   "name": "ngx-bootstrap-memleak-fixed",
-  "version": "6.2.0",
+  "version": "6.2.3",
   "description": "Native Angular Bootstrap Components, fixed MemLeak",
   "private": false,
   "scripts": {
