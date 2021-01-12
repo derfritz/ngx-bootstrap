@@ -1,7 +1,7 @@
 {
-  "name": "ngx-bootstrap-base",
+  "name": "ngx-bootstrap-memleak-fixed",
   "version": "6.2.0",
-  "description": "Native Angular Bootstrap Components",
+  "description": "Native Angular Bootstrap Components, fixed MemLeak",
   "private": false,
   "scripts": {
     "lite-server": "lite-server -c scripts/bs-config.js",
