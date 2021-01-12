@@ -5,7 +5,9 @@ import {
   forwardRef,
   Host,
   Provider,
-  Renderer2
+  Renderer2,
+  OnDestroy,
+  OnInit,
 } from '@angular/core';
 
 import {
@@ -31,6 +33,7 @@ import {
 import { BsDaterangepickerDirective } from './bs-daterangepicker.component';
 import { BsLocaleService } from './bs-locale.service';
 import { distinctUntilChanged } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 const BS_DATERANGEPICKER_VALUE_ACCESSOR: Provider = {
   provide: NG_VALUE_ACCESSOR,
@@ -58,39 +61,52 @@ const BS_DATERANGEPICKER_VALIDATOR: Provider = {
   providers: [BS_DATERANGEPICKER_VALUE_ACCESSOR, BS_DATERANGEPICKER_VALIDATOR]
 })
 export class BsDaterangepickerInputDirective
-  implements ControlValueAccessor, Validator {
+  implements ControlValueAccessor, Validator, OnInit, OnDestroy {
   private _onChange = Function.prototype;
   private _onTouched = Function.prototype;
   /* tslint:disable-next-line: no-unused-variable */
   private _validatorChange = Function.prototype;
   private _value: Date[];
+  private _subs = new Subscription();
 
   constructor(@Host() private _picker: BsDaterangepickerDirective,
               private _localeService: BsLocaleService,
               private _renderer: Renderer2,
               private _elRef: ElementRef,
-              private changeDetection: ChangeDetectorRef) {
-    // update input value on datepicker value update
-    this._picker.bsValueChange.subscribe((value: Date[]) => {
-      this._setInputValue(value);
-      if (this._value !== value) {
-        this._value = value;
-        this._onChange(value);
-        this._onTouched();
-      }
-      this.changeDetection.markForCheck();
-    });
+              private changeDetection: ChangeDetectorRef) {}
+  
+  // update input value on datepicker value update
+  ngOnInit() {
+    this._subs.add(
+      this._picker.bsValueChange.subscribe((value: Date[]) => {
+        this._setInputValue(value);
+        if (this._value !== value) {
+          this._value = value;
+          this._onChange(value);
+          this._onTouched();
+        }
+        this.changeDetection.markForCheck();
+      })
+    );
 
     // update input value on locale change
-    this._localeService.localeChange.subscribe(() => {
-      this._setInputValue(this._value);
-    });
+    this._subs.add(
+      this._localeService.localeChange.subscribe(() => {
+        this._setInputValue(this._value);
+      })
+    );
 
     // update input value on format change
-    this._picker.rangeInputFormat$.pipe(distinctUntilChanged()).subscribe(() => {
-      this._setInputValue(this._value);
-    });
+    this._subs.add(
+      this._picker.rangeInputFormat$.pipe(distinctUntilChanged()).subscribe(() => {
+        this._setInputValue(this._value);
+      })
+    );
   }
+    
+  ngOnDestroy() {
+    this._subs.unsubscribe();
+  }  
 
   onKeydownEvent(event) {
     if (event.keyCode === 13 || event.code === 'Enter') {
